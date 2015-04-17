@@ -60,8 +60,7 @@ def main():
     connection.connect()
 
     def print_chat(chat_packet):
-        print("Position: " + str(chat_packet.position))
-        print("Data: " + chat_packet.json_data)
+        print("Message: " + chat_packet.json_data)
 
     connection.register_packet_listener(print_chat, ChatMessagePacket)
     while True:

@@ -3,7 +3,7 @@ from zlib import compress
 
 from .types import (
     VarInt, Integer, Float, Double, UnsignedShort, Long, Byte, UnsignedByte,
-    String, VarIntPrefixedByteArray, Boolean
+    String, VarIntPrefixedByteArray, Boolean, Short, ByteArray
 )
 
 
@@ -62,10 +62,12 @@ class Packet(object):
             setattr(self, key, value)
         return self
 
-    def read(self, file_object):
-        for field in self.definition:
+    def read(self, file_object): 
+        print("[IN] PACKET "+self.packet_name)
+        for field in self.definition:  
             for var_name, data_type in field.items():
                 value = data_type.read(file_object)
+                #print("     "+var_name+" value:"+str(value).encode('utf-8').strip())
                 setattr(self, var_name, value)
 
     def write(self, socket, compression_threshold=None):
@@ -74,17 +76,18 @@ class Packet(object):
         packet_buffer = PacketBuffer()
         # write packet's id right off the bat in the header
         VarInt.send(self.id, packet_buffer)
-
-        for field in self.definition:
+                       
+        print("[OUT] PACKET "+self.packet_name)                          
+        for field in self.definition:    
             for var_name, data_type in field.items():
                 data = getattr(self, var_name)
-                data_type.send(data, packet_buffer)
+                data_type.send(data, packet_buffer)   
 
         # compression_threshold of None means compression is disabled
         if compression_threshold is not None:
             if len(packet_buffer.get_writable()) > compression_threshold != -1:
-                # compress the current payload
-                compressed_data = compress(packet_buffer.get_writable())
+                # compress the current payload, level of 9 for max compression
+                compressed_data = compress(packet_buffer.get_writable(), 9)
                 packet_buffer.reset()
                 # write out the length of the compressed payload
                 VarInt.send(len(compressed_data), packet_buffer)
@@ -187,19 +190,10 @@ class LoginSuccessPacket(Packet):
         {'UUID': String},
         {'Username': String}]
 
-
-class SetCompressionPacket(Packet):
-    id = 0x03
-    packet_name = "set compression"
-    definition = [
-        {'threshold': VarInt}]
-
-
 STATE_LOGIN_CLIENTBOUND = {
     0x00: DisconnectPacket,
     0x01: EncryptionRequestPacket,
     0x02: LoginSuccessPacket,
-    0x03: SetCompressionPacket
 }
 
 
@@ -231,7 +225,7 @@ class KeepAlivePacket(Packet):
     id = 0x00
     packet_name = "keep alive"
     definition = [
-        {'keep_alive_id': VarInt}]
+        {'keep_alive_id': Integer}]
 
 
 class JoinGamePacket(Packet):
@@ -243,16 +237,14 @@ class JoinGamePacket(Packet):
         {'dimension': Byte},
         {'difficulty': UnsignedByte},
         {'max_players': UnsignedByte},
-        {'level_type': String},
-        {'reduced_debug_info': Boolean}]
+        {'level_type': String}]
 
 
 class ChatMessagePacket(Packet):
     id = 0x02
     packet_name = "chat message"
     definition = [
-        {'json_data': String},
-        {'position': Byte}]
+        {'json_data': String}]
 
 
 class PlayerPositionAndLookPacket(Packet):
@@ -264,31 +256,36 @@ class PlayerPositionAndLookPacket(Packet):
         {'z': Double},
         {'yaw': Float},
         {'pitch': Float},
-        {'flags': Byte}]
-
+        {'ground': Boolean}]
 
 class DisconnectPacketPlayState(Packet):
     id = 0x40
     packet_name = "disconnect"
-
     definition = [
         {'json_data': String}]
 
 
-class SetCompressionPacketPlayState(Packet):
-    id = 0x46
-    packet_name = "set compression"
+class HeldItemChange(Packet):
+    id = 0x09
+    packet_name = "Held Item Change"
     definition = [
-        {'threshold': VarInt}]
-
+        {'slot': Short}
+    ]
+    
+class HeldItemChangeServer(Packet):
+    id = 0x09
+    packet_name = "Held Item Change Server"
+    definition = [
+        {'slot': Byte}
+    ]    
 
 STATE_PLAYING_CLIENTBOUND = {
     0x00: KeepAlivePacket,
     0x01: JoinGamePacket,
     0x02: ChatMessagePacket,
-    0x08: PlayerPositionAndLookPacket,
+    #0x08: PlayerPositionAndLookPacket,
     0x40: DisconnectPacketPlayState,
-    0x46: SetCompressionPacketPlayState
+    0x09: HeldItemChangeServer
 }
 
 
@@ -310,9 +307,27 @@ class PositionAndLookPacket(Packet):
         {'pitch': Float},
         {'on_ground': Boolean}]
 
+class BlockPlacementPacket(Packet):
+    id = 0x08
+    packet_name = "block placement"
+    definition = [
+        {'X': Integer},
+        {'Y': UnsignedByte},
+        {'Z': Integer},
+        {'face': Byte},
+        {'held_item_id': Short},
+        {'held_item_count': Byte},
+        {'held_item_damage': Short},
+        {'held_item_nbt': ByteArray},
+        {'cursor_position_x': Byte},
+        {'cursor_position_y': Byte},
+        {'cursor_position_z': Byte}
+    ]
 
 STATE_PLAYING_SERVERBOUND = {
     0x00: KeepAlivePacket,
     0x01: ChatPacket,
-    0x06: PositionAndLookPacket
+    0x06: PositionAndLookPacket,
+    0x08: BlockPlacementPacket,
+    0x09: HeldItemChange
 }

@@ -5,6 +5,7 @@ import threading
 import socket
 import time
 import select
+import sys
 
 from .types import VarInt
 from . import packets
@@ -319,6 +320,7 @@ class PlayingReactor(PacketReactor):
 
         if packet.packet_name == "disconnect":
             print(packet.json_data)  # TODO: handle propagating this back
+            sys.exit()
 
 
 class StatusReactor(PacketReactor):
