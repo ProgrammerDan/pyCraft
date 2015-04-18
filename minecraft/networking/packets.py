@@ -314,6 +314,7 @@ class BlockPlacementPacket(Packet):
         {'X': Integer},
         {'Y': UnsignedByte},
         {'Z': Integer},
+        {'direction': Byte},
         {'face': Byte},
         {'held_item_id': Short},
         {'held_item_count': Byte},

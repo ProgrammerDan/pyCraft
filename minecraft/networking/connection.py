@@ -80,6 +80,12 @@ class Connection(object):
         else:
             self._outgoing_packet_queue.append(packet)
 
+    def write_raw(self, data):
+        print("[OUT] Raw: " + str(len(data)))
+        self._write_lock.acquire()
+        self.socket.send(data)
+        self._write_lock.release()
+
     def register_packet_listener(self, method, *args):
         """
         Registers a listener method which will be notified when a packet of
