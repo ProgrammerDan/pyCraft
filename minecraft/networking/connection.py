@@ -315,11 +315,12 @@ class PlayingReactor(PacketReactor):
         if packet.packet_name == "player position and look":
             position_response = packets.PositionAndLookPacket()
             position_response.x = packet.x
-            position_response.feet_y = packet.y
+            position_response.feet_y = packet.y - 1.62
+            position_response.head_y = packet.y
             position_response.z = packet.z
             position_response.yaw = packet.yaw
             position_response.pitch = packet.pitch
-            position_response.on_ground = True
+            position_response.on_ground = packet.ground
 
             self.connection.write_packet(position_response)
             self.connection.spawned = True

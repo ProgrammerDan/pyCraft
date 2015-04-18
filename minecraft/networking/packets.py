@@ -81,6 +81,7 @@ class Packet(object):
         for field in self.definition:    
             for var_name, data_type in field.items():
                 data = getattr(self, var_name)
+                print("    " + var_name + ":" + str(data_type))
                 data_type.send(data, packet_buffer)   
 
         # compression_threshold of None means compression is disabled
@@ -283,7 +284,7 @@ STATE_PLAYING_CLIENTBOUND = {
     0x00: KeepAlivePacket,
     0x01: JoinGamePacket,
     0x02: ChatMessagePacket,
-    #0x08: PlayerPositionAndLookPacket,
+    0x08: PlayerPositionAndLookPacket,
     0x40: DisconnectPacketPlayState,
     0x09: HeldItemChangeServer
 }
@@ -302,6 +303,7 @@ class PositionAndLookPacket(Packet):
     definition = [
         {'x': Double},
         {'feet_y': Double},
+        {'head_y': Double},
         {'z': Double},
         {'yaw': Float},
         {'pitch': Float},
@@ -315,7 +317,6 @@ class BlockPlacementPacket(Packet):
         {'Y': UnsignedByte},
         {'Z': Integer},
         {'direction': Byte},
-        {'face': Byte},
         {'held_item_id': Short},
         {'held_item_count': Byte},
         {'held_item_damage': Short},
