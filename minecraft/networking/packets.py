@@ -3,7 +3,7 @@ from zlib import compress
 
 from .types import (
     VarInt, Integer, Float, Double, UnsignedShort, Long, Byte, UnsignedByte,
-    String, VarIntPrefixedByteArray, Boolean, Short, ByteArray
+    String, ShortPrefixedByteArray, VarIntPrefixedByteArray, Boolean, Short, ByteArray
 )
 
 
@@ -179,8 +179,8 @@ class EncryptionRequestPacket(Packet):
     packet_name = "encryption request"
     definition = [
         {'server_id': String},
-        {'public_key': VarIntPrefixedByteArray},
-        {'verify_token': VarIntPrefixedByteArray}]
+        {'public_key': ShortPrefixedByteArray},
+        {'verify_token': ShortPrefixedByteArray}]
 
 
 class LoginSuccessPacket(Packet):
@@ -208,8 +208,8 @@ class EncryptionResponsePacket(Packet):
     id = 0x01
     packet_name = "encryption response"
     definition = [
-        {'shared_secret': VarIntPrefixedByteArray},
-        {'verify_token': VarIntPrefixedByteArray}]
+        {'shared_secret': ShortPrefixedByteArray},
+        {'verify_token': ShortPrefixedByteArray}]
 
 
 STATE_LOGIN_SERVERBOUND = {
