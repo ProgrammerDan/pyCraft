@@ -67,7 +67,7 @@ def generate_exploitative_nbt():
 
     tag_id_and_name(10, "rekt", data)
 
-    for i in range(10):
+    for i in range(300):
         if i % 20 == 0:
             print("List count: " + str(i))
         write_lists(0, data)
